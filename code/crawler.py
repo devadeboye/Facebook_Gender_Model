@@ -14,7 +14,7 @@ import random
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-class foo:
+class FetchData:
 
     def __init__(self):
         """
@@ -111,7 +111,14 @@ class foo:
                 ('a[label="Places He\'s Lived"]')
             return(1)
         except NoSuchElementException:
-            return(0)
+            # try to see if user is a female
+            try:
+                self.driver.find_element_by_css_selector\
+                    ('a[label="Places She\'s Lived"]')
+                return(0)
+            except NoSuchElementException:
+                # return a missing value when sex can't be determined
+                return('')
 
 
     def get_frnd(self):
@@ -246,7 +253,7 @@ class foo:
 
 
 if __name__ == "__main__":
-    f = foo()
+    f = FetchData()
     #sleep
     time.sleep(2)
     f.go_fb()
