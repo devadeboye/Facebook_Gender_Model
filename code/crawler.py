@@ -3,14 +3,6 @@ This module contains all the code that will gather all the necessary
 details that is needed about a facebook user in other to make
 our predictions.
 """
-# INFO TO GLEAN FROM FACEBOOK
-# Name, gender, total no of frnds, no of male frnds,
-# no of female frnd, male > female, play candy crush
-# 
-# 
-# 
-# i need to get the common categories of pages liked by
-# female users on facebook
 
 # import all necessary libary
 from selenium import webdriver
@@ -126,14 +118,6 @@ class foo:
         """
         method to get the list of friend
         """
-        # Algorithm
-        # - click on my profile
-        # - click on friends
-        #   - for each of my friend: ------->
-        #     - get the following information
-        #       [name, sex, total no of frnds, no of male frnds
-        #        no of female frnds, is no of male greater than female]
-
         # locate the logged in user's profile button
         def get_profile():
             """
@@ -172,12 +156,9 @@ class foo:
         # select each friend div using css attribute selector
         frnd_list = self.driver.find_elements_by_css_selector\
             ('div[data-testid="friend_list_item"]')
-        # iterate over each friend
-        for user in frnd_list:
-            # get the link to user's profile
-            user_link = user.find_element_by_css_selector('a').get_attribute('href')
-            # add the link to a list
-            self.frnd_list.append(user_link)
+        # get the link to each user's profile
+        self.frnd_list = [(user.find_element_by_css_selector\
+            ('a').get_attribute('href')) for user in frnd_list]
             
     def scrape_info(self):
         """
