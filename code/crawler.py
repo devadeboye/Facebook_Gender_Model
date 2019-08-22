@@ -13,6 +13,8 @@ from selenium.common.exceptions import NoSuchElementException
 import random
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+import json
+import csv
 
 class FetchData:
 
@@ -167,15 +169,20 @@ class FetchData:
         # get the link to each user's profile
         self.frnd_list = [(user.find_element_by_css_selector\
             ('a').get_attribute('href')) for user in frnd_list]
-            
-    def scrape_info(self):
+        
+        # write the links as json
+        l = open('fb_users.json', 'w')
+        json.dump(self.frnd_list, l)
+
+    def scrape_info(self, user_list):
         """
-        gather info about users
+        gather info about users, takes one argument which must be a list
+        containing the link to the users profile
         """
         # info about all user
         data = list()
 
-        for user_link in self.frnd_list:
+        for user_link in user_list:
             # visit user's profile with the link
             self.driver.get(user_link)
             # wait
@@ -202,14 +209,16 @@ class FetchData:
                 # wait
                 time.sleep(random.randint(5,7))
                 # switch to the friends tab to get other info
-                self.driver.find_element_by_css_selector('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="friends"]').click()
+                self.driver.find_element_by_css_selector\
+                    ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="friends"]').click()
 
                 time.sleep(random.randint(4,6))
                 #scroll all friends has been loaded
                 self.movie()
                 
                 # select each friend div using css attribute selector
-                frnd_list = self.driver.find_elements_by_css_selector('div[data-testid="friend_list_item"]')
+                frnd_list = self.driver.find_elements_by_css_selector\
+                    ('div[data-testid="friend_list_item"]')
                 # total number pf friends
                 total_no_frnds = len(frnd_list)
                 no_of_male_frnd = 0
@@ -231,8 +240,24 @@ class FetchData:
             data.append(result)
             print(result)
             time.sleep(random.randint(6,8))
-        # return the data for all user
-        return(data)
+            # write data to csv
+            with open('friends_data.csv', 'a') as f:
+                writer = csv.writer(f, delimiter=',', lineterminator='\n')
+                writer.writerows(data)
+
+
+    def csv_header(self, header):
+        """
+        write the header of the csv file to make identification of columns
+        easier.
+
+        takes a list of the headers as an argument
+        """
+        with open('friends_data.csv', 'a') as f:
+            writer = csv.writer(f, delimiter=',', lineterminator='\n')
+            # write the headers
+            writer.writerow()
+        f.close()
 
     def logout(self):
         """sign out of facebook"""
@@ -268,14 +293,15 @@ if __name__ == "__main__":
     f.get_frnd()
     # wait
     time.sleep(10)
+    # write the header for the csv file
+    f.csv_header(['name', 'gender', 'total_no_frnds', 'no_of_male_frnd', 'no_of_female_frnd'])
+
+    # fetch links from json
+    user = open('fb_users.json', 'r')
+    links = json.load(user)
+    # link of ffirst ten users
+    first_ten = links[:11]
     # get users data
-    data = f.scrape_info()
+    f.scrape_info(first_ten)
 
-    # write data to csv
-    import csv
-
-    with open('friends_data.csv', 'a') as f:
-        writer = csv.writer(f, delimiter=',', lineterminator='\n')
-        # write the headers
-        writer.writerow(['name', 'gender', 'total_no_frnds', 'no_of_male_frnd', 'no_of_female_frnd'])
-        writer.writerows(data)
+    
