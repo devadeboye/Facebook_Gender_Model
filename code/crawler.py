@@ -125,7 +125,7 @@ class FetchData:
 
     def get_frnd(self):
         """
-        method to get the list of friend
+        method to get the list of your facebook friends
         """
         # locate the logged in user's profile button
         def get_profile():
@@ -216,16 +216,35 @@ class FetchData:
                 #scroll all friends has been loaded
                 self.movie()
                 
-                # select each friend div using css attribute selector
+                # select the div of user's friends using css attribute
+                # selector
                 frnd_list = self.driver.find_elements_by_css_selector\
                     ('div[data-testid="friend_list_item"]')
+                # get the url of each friend of the user
+                frnd_list_url = [(user.find_element_by_css_selector\
+                    ('a').get_attribute('href')) for user in frnd_list]
+                
                 # total number pf friends
-                total_no_frnds = len(frnd_list)
+                total_no_frnds = len(frnd_list_url)
                 no_of_male_frnd = 0
                 no_of_female_frnd = 0
 
                 # get the sex of each user
-                for user in frnd_list:
+                for user in frnd_list_url:
+                    # wait
+                    time.sleep(random.randint(5,7))
+                    # visit their page
+                    self.driver.get(user)
+                    # wait
+                    time.sleep(random.randint(5,7))
+                    
+                    # switch to the about tab to get other info
+                    self.driver.find_element_by_css_selector\
+                        ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
+                    # wait
+                    time.sleep(random.randint(5,7))
+                    
+                    #check if they are male or female
                     if self.get_gender() == 1:
                         no_of_male_frnd += 1
                     else:
@@ -239,11 +258,12 @@ class FetchData:
             # add result to the list of data
             data.append(result)
             print(result)
-            time.sleep(random.randint(6,8))
+            
             # write data to csv
             with open('friends_data.csv', 'a') as f:
                 writer = csv.writer(f, delimiter=',', lineterminator='\n')
                 writer.writerows(data)
+            f.close()
 
 
     def csv_header(self, header):
@@ -300,7 +320,7 @@ if __name__ == "__main__":
     user = open('fb_users.json', 'r')
     links = json.load(user)
     # link of ffirst ten users
-    first_ten = links[:6]
+    first_ten = [links[1]]
     # get users data
     f.scrape_info(first_ten)
 
