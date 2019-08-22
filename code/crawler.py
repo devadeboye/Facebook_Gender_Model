@@ -154,6 +154,7 @@ class FetchData:
             ('#fbTimelineHeadline > div:nth-child(2) > ul > li:nth-child(3) > a:nth-child(1)')
         # click the tab
         friend_tab.click()
+        time.sleep(random.randint(4,5))
         
         # scroll till movie section is found to ensure all friends
         # has been loaded 
@@ -186,7 +187,7 @@ class FetchData:
             self.driver.find_element_by_css_selector\
                 ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
             # wait
-            time.sleep(6)
+            time.sleep(random.randint(5,7))
             # get the gender
             gender = self.get_gender()
             print(f'{name} - male_status: {gender}')
@@ -199,10 +200,11 @@ class FetchData:
                 among these friends.
                 """
                 # wait
-                time.sleep(7)
+                time.sleep(random.randint(5,7))
                 # switch to the friends tab to get other info
                 self.driver.find_element_by_css_selector('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="friends"]').click()
 
+                time.sleep(random.randint(4,6))
                 #scroll all friends has been loaded
                 self.movie()
                 
@@ -227,7 +229,8 @@ class FetchData:
             result = [name, gender, total_no_frnds, no_of_male_frnd, no_of_female_frnd]
             # add result to the list of data
             data.append(result)
-            time.sleep(8)
+            print(result)
+            time.sleep(random.randint(6,8))
         # return the data for all user
         return(data)
 
