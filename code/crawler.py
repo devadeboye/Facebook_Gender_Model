@@ -256,7 +256,7 @@ class FetchData:
         with open('friends_data.csv', 'a') as f:
             writer = csv.writer(f, delimiter=',', lineterminator='\n')
             # write the headers
-            writer.writerow()
+            writer.writerow(header)
         f.close()
 
     def logout(self):
@@ -289,8 +289,8 @@ if __name__ == "__main__":
     time.sleep(6)
     f.login()
     # sleep
-    time.sleep(7)
-    f.get_frnd()
+    #time.sleep(7)
+    #f.get_frnd()
     # wait
     time.sleep(10)
     # write the header for the csv file
@@ -300,7 +300,7 @@ if __name__ == "__main__":
     user = open('fb_users.json', 'r')
     links = json.load(user)
     # link of ffirst ten users
-    first_ten = links[:11]
+    first_ten = links[:6]
     # get users data
     f.scrape_info(first_ten)
 
