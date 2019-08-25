@@ -99,15 +99,29 @@ class FetchData:
             self.movie()
 
 
-    def get_gender(self):
+    def get_gender(self, name):
         """
-        return the gender of the user.
+        return the gender of the user whose name is given.
 
         RETURN VALUE:
         1 -- male
         0 -- female
         """
-        try:
+        # open json containing the names of user
+        f = open('girl.json', 'r')
+        girl_name = json.load(f)
+
+        temp = name.split(' ')
+        if len(temp) == 2:
+            if temp[1] in girl_name:
+                return(0)
+            return(1)
+        elif len(temp) == 3:
+            if temp[1] in girl_name or temp[2] in girl_name:
+                return(0)
+            return(1)
+
+        """try:
             # use the places he/she's lived string to get the gender
             self.driver.find_element_by_css_selector\
                 ('a[label="Places He\'s Lived"]')
@@ -120,7 +134,7 @@ class FetchData:
                 return(0)
             except NoSuchElementException:
                 # return a missing value when sex can't be determined
-                return('')
+                return('')"""
 
 
     def get_frnd(self):
@@ -196,7 +210,7 @@ class FetchData:
             # wait
             time.sleep(random.randint(5,7))
             # get the gender
-            gender = self.get_gender()
+            gender = self.get_gender(name)
             print(f'{name} - male_status: {gender}')
 
             # get the gender distribution of user's frnd
@@ -237,6 +251,9 @@ class FetchData:
                     self.driver.get(user)
                     # wait
                     time.sleep(random.randint(5,7))
+                    # get their name
+                    name = self.driver.find_element_by_css_selector\
+                        ('#fb-timeline-cover-name a').text
                     
                     # switch to the about tab to get other info
                     self.driver.find_element_by_css_selector\
@@ -245,7 +262,7 @@ class FetchData:
                     time.sleep(random.randint(5,7))
                     
                     #check if they are male or female
-                    if self.get_gender() == 1:
+                    if self.get_gender(name) == 1:
                         no_of_male_frnd += 1
                     else:
                         no_of_female_frnd += 1
