@@ -108,33 +108,85 @@ class FetchData:
         0 -- female
         """
         # open json containing the names of user
-        f = open('girl.json', 'r')
-        girl_name = json.load(f)
+        f1 = open('girl.json', 'r')
+        f2 = open('boy.json', 'r')
+
+        girl_name = json.load(f1)
+        boy_name = json.load(f2)
 
         temp = name.split(' ')
         if len(temp) == 2:
-            if temp[1] in girl_name:
-                return(0)
-            return(1)
-        elif len(temp) == 3:
-            if temp[1] in girl_name or temp[2] in girl_name:
-                return(0)
-            return(1)
-
-        """try:
-            # use the places he/she's lived string to get the gender
-            self.driver.find_element_by_css_selector\
-                ('a[label="Places He\'s Lived"]')
-            return(1)
-        except NoSuchElementException:
-            # try to see if user is a female
-            try:
+            # if name is unisex (i.e present in list of
+            # both male and female names)
+            if temp[1] in girl_name and temp[1] in boy_name:
+                print("""name is unisex, so i'm gonna have to take
+                a peek under the hood to determine their gender.""")
+                # switch to the about tab to get other info
                 self.driver.find_element_by_css_selector\
-                    ('a[label="Places She\'s Lived"]')
+                    ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
+                # wait
+                time.sleep(4)
+                try:
+                    # use the places he/she's lived string to get the gender
+                    self.driver.find_element_by_css_selector\
+                        ('a[label="Places He\'s Lived"]')
+                    return(1)
+                except NoSuchElementException:
+                    # try to see if user is a female
+                    try:
+                        self.driver.find_element_by_css_selector\
+                            ('a[label="Places She\'s Lived"]')
+                        return(0)
+                    except NoSuchElementException:
+                        # return a missing value when sex can't be determined
+                        print('filling in a missing value cos sex can\'t be determined')
+                        return('')
+            elif temp[1] in girl_name:
                 return(0)
-            except NoSuchElementException:
-                # return a missing value when sex can't be determined
-                return('')"""
+            else:
+                return(1)
+        elif len(temp) == 3:
+            # if first name is unisex
+            if temp[1] in girl_name and temp[1] in boy_name:
+                # if second name is unisex
+                if temp[2] in girl_name and temp[2] in boy_name:
+                    print("""name is unisex, so i'm gonna have to take
+                    a peek under the hood to determine their gender.""")
+                    # check their profile for confirmation
+                    #  
+                    # switch to the about tab to get other info
+                    self.driver.find_element_by_css_selector\
+                        ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
+                    time.sleep(4)
+                    #------------------------------------------------------------
+                    try:
+                        # use the places he/she's lived string to get the gender
+                        self.driver.find_element_by_css_selector\
+                            ('a[label="Places He\'s Lived"]')
+                        return(1)
+                    except NoSuchElementException:
+                        # try to see if user is a female
+                        try:
+                            self.driver.find_element_by_css_selector\
+                                ('a[label="Places She\'s Lived"]')
+                            return(0)
+                        except NoSuchElementException:
+                            # return a missing value when sex can't be determined
+                            return('')
+
+            # if second name is unisex
+            elif temp[2] in girl_name and temp[2] in boy_name:
+                # if first name is unisex
+                if temp[1] in girl_name and temp[2] in boy_name:
+                    # check their profile for confirmation
+                    pass
+
+            elif temp[1] in girl_name or temp[2] in girl_name:
+                return(0)
+            else:
+                return(1)
+
+        
 
 
     def get_frnd(self):
@@ -205,10 +257,10 @@ class FetchData:
             name = self.driver.find_element_by_css_selector\
                 ('#fb-timeline-cover-name a').text
             # switch to the about tab to get other info
-            self.driver.find_element_by_css_selector\
-                ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
+            #self.driver.find_element_by_css_selector\
+            #    ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
             # wait
-            time.sleep(random.randint(5,7))
+            #time.sleep(random.randint(5,7))
             # get the gender
             gender = self.get_gender(name)
             print(f'{name} - male_status: {gender}')
@@ -255,11 +307,11 @@ class FetchData:
                     name = self.driver.find_element_by_css_selector\
                         ('#fb-timeline-cover-name a').text
                     
-                    # switch to the about tab to get other info
+                    """# switch to the about tab to get other info
                     self.driver.find_element_by_css_selector\
                         ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
                     # wait
-                    time.sleep(random.randint(5,7))
+                    time.sleep(random.randint(5,7))"""
                     
                     #check if they are male or female
                     if self.get_gender(name) == 1:
