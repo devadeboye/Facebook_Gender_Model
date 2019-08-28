@@ -35,7 +35,8 @@ class FetchData:
 
         #---------- browser instance ----------------
         # gecko driver path
-        gecko = '../../fbCRAWL/code/geckodriver.exe'
+        #gecko = '../../fbCRAWL/code/geckodriver.exe'
+        gecko = '../../fbCRAWL/code/geckodriver'
         # firefox profile
         ff_prof = webdriver.FirefoxProfile()
         # block images from loading
@@ -99,7 +100,36 @@ class FetchData:
             self.movie()
 
 
-    def get_gender(self, name):
+    def take_peek(self, name , url):
+        """
+        get user's gender from their profile when it can't
+        be determined with their name.
+        """
+        print(f"""unable to determine {name}'s gender, so i'm gonna have to take a peek under the hood to determine their gender.""")
+        # check their profile for confirmation
+        # 
+        # visit their profile via url
+        self.driver.get(url)
+        # wait
+        time.sleep(random.randint(6,8)) 
+        # switch to the about tab to get other info
+        self.driver.find_element_by_css_selector\
+            ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
+        time.sleep(10)
+        #------------------------------------------------------------
+        try:
+            # use the places he/she's lived string to get the gender
+            if self.driver.find_element_by_css_selector('a[testid="nav_places"] span').text == "Places He's Lived":
+                print(f'{name} is a male')
+                return(1)
+            elif self.driver.find_element_by_css_selector('a[testid="nav_places"] span').text == "Places She's Lived":
+                print(f'{name} is a female')
+                return(0)
+        except NoSuchElementException:
+            print(f"can't determine {name}'s gender")
+
+
+    def get_gender(self, name, url):
         """
         return the gender of the user whose name is given.
 
@@ -109,7 +139,7 @@ class FetchData:
         """
         # open json containing the names of user
         f1 = open('girl.json', 'r')
-        f2 = open('boy.json', 'r')
+        f2 = open('boys.json', 'r')
 
         girl_name = json.load(f1)
         boy_name = json.load(f2)
@@ -119,73 +149,39 @@ class FetchData:
             # if name is unisex (i.e present in list of
             # both male and female names)
             if temp[1] in girl_name and temp[1] in boy_name:
-                print("""name is unisex, so i'm gonna have to take
-                a peek under the hood to determine their gender.""")
-                # switch to the about tab to get other info
-                self.driver.find_element_by_css_selector\
-                    ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
-                # wait
-                time.sleep(4)
-                try:
-                    # use the places he/she's lived string to get the gender
-                    self.driver.find_element_by_css_selector\
-                        ('a[label="Places He\'s Lived"]')
-                    return(1)
-                except NoSuchElementException:
-                    # try to see if user is a female
-                    try:
-                        self.driver.find_element_by_css_selector\
-                            ('a[label="Places She\'s Lived"]')
-                        return(0)
-                    except NoSuchElementException:
-                        # return a missing value when sex can't be determined
-                        print('filling in a missing value cos sex can\'t be determined')
-                        return('')
-            elif temp[1] in girl_name:
+                return(self.take_peek(name, url))
+            # name in list of girl name and not in boys
+            elif temp[1] in girl_name and temp[1] not in boy_name:
                 return(0)
-            else:
+            elif temp[1] in boy_name and temp[1] not in girl_name:
                 return(1)
         elif len(temp) == 3:
             # if first name is unisex
             if temp[1] in girl_name and temp[1] in boy_name:
                 # if second name is unisex
                 if temp[2] in girl_name and temp[2] in boy_name:
-                    print("""name is unisex, so i'm gonna have to take
-                    a peek under the hood to determine their gender.""")
-                    # check their profile for confirmation
-                    #  
-                    # switch to the about tab to get other info
-                    self.driver.find_element_by_css_selector\
-                        ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
-                    time.sleep(4)
-                    #------------------------------------------------------------
-                    try:
-                        # use the places he/she's lived string to get the gender
-                        self.driver.find_element_by_css_selector\
-                            ('a[label="Places He\'s Lived"]')
-                        return(1)
-                    except NoSuchElementException:
-                        # try to see if user is a female
-                        try:
-                            self.driver.find_element_by_css_selector\
-                                ('a[label="Places She\'s Lived"]')
-                            return(0)
-                        except NoSuchElementException:
-                            # return a missing value when sex can't be determined
-                            return('')
+                    return(self.take_peek(name, url))
 
-            # if second name is unisex
-            elif temp[2] in girl_name and temp[2] in boy_name:
-                # if first name is unisex
-                if temp[1] in girl_name and temp[2] in boy_name:
-                    # check their profile for confirmation
-                    pass
-
-            elif temp[1] in girl_name or temp[2] in girl_name:
+            # both name is of a girl
+            elif temp[1] in girl_name and temp[2] in girl_name:
                 return(0)
-            else:
+            # if none of the name is a boy name
+            elif temp[1] in girl_name and temp[2] not in boy_name:
+                return(0)
+            # both in boy names
+            elif temp[1] in boy_name and temp[2] in boy_name:
                 return(1)
+            # if both names are not in our collection of names
+            elif temp[1] not in girl_name and temp[1] not in boy_name:
+                if temp[2] not in girl_name and temp[2] not in boy_name:
+                    return(self.take_peek(name, url))
+            elif temp[2] not in girl_name and temp[2] not in boy_name:
+                if temp[1] not in girl_name and temp[1] not in boy_name:
+                    return(self.take_peek(name, url))
 
+        # if name is more than 3
+        else:
+            return(self.take_peek(name, url))
         
 
 
@@ -193,7 +189,7 @@ class FetchData:
         """
         method to get the list of your facebook friends
         """
-        # locate the logged in user's profile button
+        # locate the logged in user's(admin/scientist) account profile button
         def get_profile():
             """
             locate the logged in user's profile button.
@@ -201,7 +197,7 @@ class FetchData:
             is found
             """
             try:
-                # seaarch for elelment
+                # search for elelment
                 profile_but = self.driver.find_element_by_xpath\
                     ('/html/body/div[1]/div[2]/div/div[1]/div/div/div/div[2]/div[1]/div[1]/div/a')
                 return(profile_but)
@@ -230,16 +226,17 @@ class FetchData:
         # get info from the friend list iteratively
         #  
         # select each friend div using css attribute selector
-        frnd_list = self.driver.find_elements_by_css_selector\
+        frnd = self.driver.find_elements_by_css_selector\
             ('div[data-testid="friend_list_item"]')
         # get the link to each user's profile
         self.frnd_list = [(user.find_element_by_css_selector\
-            ('a').get_attribute('href')) for user in frnd_list]
+            ('a').get_attribute('href')) for user in frnd]
         
         # write the links as json
         l = open('fb_users.json', 'w')
         json.dump(self.frnd_list, l)
 
+    
     def scrape_info(self, user_list):
         """
         gather info about users, takes one argument which must be a list
@@ -250,19 +247,14 @@ class FetchData:
 
         for user_link in user_list:
             # visit user's profile with the link
-            self.driver.get(user_link)
+            self.driver.get(str(user_link))
             # wait
             time.sleep(random.randint(5,7))
             # get the user's name
             name = self.driver.find_element_by_css_selector\
                 ('#fb-timeline-cover-name a').text
-            # switch to the about tab to get other info
-            #self.driver.find_element_by_css_selector\
-            #    ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
-            # wait
-            #time.sleep(random.randint(5,7))
             # get the gender
-            gender = self.get_gender(name)
+            gender = self.get_gender(name, user_link)
             print(f'{name} - male_status: {gender}')
 
             # get the gender distribution of user's frnd
@@ -287,37 +279,23 @@ class FetchData:
                 frnd_list = self.driver.find_elements_by_css_selector\
                     ('div[data-testid="friend_list_item"]')
                 # get the url of each friend of the user
-                frnd_list_url = [(user.find_element_by_css_selector\
-                    ('a').get_attribute('href')) for user in frnd_list]
+                frnd_list_url = {(user.find_element_by_css_selector('div[class="uiProfileBlockContent"] > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > a').text):(user.find_element_by_css_selector('a').get_attribute('href')) for user in frnd_list}
                 
-                # total number pf friends
+                fof = frnd_list_url.keys() # friends of friend
+                # total number of friends
                 total_no_frnds = len(frnd_list_url)
                 no_of_male_frnd = 0
                 no_of_female_frnd = 0
 
                 # get the sex of each user
-                for user in frnd_list_url:
-                    # wait
-                    time.sleep(random.randint(5,7))
-                    # visit their page
-                    self.driver.get(user)
-                    # wait
-                    time.sleep(random.randint(5,7))
-                    # get their name
-                    name = self.driver.find_element_by_css_selector\
-                        ('#fb-timeline-cover-name a').text
-                    
-                    """# switch to the about tab to get other info
-                    self.driver.find_element_by_css_selector\
-                        ('ul[data-referrer="timeline_light_nav_top"] a[data-tab-key="about"]').click()
-                    # wait
-                    time.sleep(random.randint(5,7))"""
-                    
+                for user in fof:
                     #check if they are male or female
-                    if self.get_gender(name) == 1:
+                    if self.get_gender(user, frnd_list_url[user]) == 1:
                         no_of_male_frnd += 1
-                    else:
+                        print(f'fof {user} ---> m')
+                    elif self.get_gender(user, frnd_list_url[user]) == 0:
                         no_of_female_frnd += 1
+                        print(f'fof {user} ---> f')
                 return ([total_no_frnds, no_of_male_frnd, no_of_female_frnd])
             # upack the gender distribution details
             total_no_frnds, no_of_male_frnd, no_of_female_frnd = gender_distr()
@@ -331,7 +309,7 @@ class FetchData:
             # write data to csv
             with open('friends_data.csv', 'a') as f:
                 writer = csv.writer(f, delimiter=',', lineterminator='\n')
-                writer.writerows(data)
+                writer.writerow(result)
             f.close()
 
 
@@ -383,14 +361,12 @@ if __name__ == "__main__":
     # wait
     time.sleep(10)
     # write the header for the csv file
-    f.csv_header(['name', 'gender', 'total_no_frnds', 'no_of_male_frnd', 'no_of_female_frnd'])
+    #f.csv_header(['name', 'gender', 'total_no_frnds', 'no_of_male_frnd', 'no_of_female_frnd'])
 
     # fetch links from json
     user = open('fb_users.json', 'r')
     links = json.load(user)
-    # link of ffirst ten users
-    first_ten = [links[1]]
+    # link of first ten users
+    first_ten = links[25:31]
     # get users data
     f.scrape_info(first_ten)
-
-    
