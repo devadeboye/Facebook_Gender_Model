@@ -1,5 +1,5 @@
 """
-This module contains all the code that will gather all the necessary
+This script contains all necessary codes needed to scrape the
 details that is needed about a facebook user in other to make
 our predictions.
 """
